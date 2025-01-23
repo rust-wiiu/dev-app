@@ -1,0 +1,17 @@
+[package]
+name = "dev-appp"
+version = "0.2.0"
+edition = "2021"
+authors = ["29th-Day"]
+license = "EUPL"
+
+[package.metadata.wuhb]
+name = "My Rust App"
+# short-name = "Rust"
+# icon = "abc.png"
+# tv-image = "def.png"
+# drc-image = "ghi.png"
+# content = "/content/dir"
+
+[dependencies]
+wut = { path = "../wut-rs", version = "*", features = ["panic_handler"] }

@@ -1,0 +1,15 @@
+extend = [{ path = "../wut-rs/Makefile.toml" }]
+
+[env]
+WUT_DIR = "../wut-rs"
+
+[tasks.run-cemu]
+command = "../cemu/Cemu"
+args = ["-g", "${OUT_FILE}"]
+dependencies = ["wuhb"]
+
+[tasks.upload-ftp]
+env = { IP = "10.0.0.69", TO = "fs/vol/external01/wiiu/apps/test/${CARGO_MAKE_PROJECT_NAME}.wuhb" }
+command = "curl"
+args = ["-s", "-m", "5", "-T", "${OUT_FILE}", "ftp://${IP}/${TO}"]
+dependencies = ["wuhb"]
