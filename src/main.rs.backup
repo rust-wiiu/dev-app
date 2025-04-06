@@ -1,27 +1,19 @@
 #![no_std]
 #![no_main]
 
+use wut::gx2::Renderable;
 use wut::prelude::*;
 use wut::*;
 
-use wut::gx2::shader::{self, attribute::Float4};
+use wut::gx2::render::{
+    attribute::Float4,
+    buffer::{Buffer, ResourceFlags},
+    shader::Shader,
+    shader_group::ShaderGroup,
+};
+use wut::gx2::render_context::RenderContext;
 
-#[derive(ShaderAttributes)]
-struct MyShader {
-    #[name = "aPosition"]
-    // #[index = 0]
-    // #[offset = 3]
-    a_position: shader::Attribute<Float4>,
-    #[name = "aColour"]
-    // #[index = 1]
-    // #[offset = 0]
-    a_color: shader::Attribute<Float4>,
-}
-
-static PROGRAM: shader::Program = shader::Program::from(include_bytes!("shader.gsh"));
-
-/*
-&[
+static SHADER: Shader<1484> = Shader::from([
     0x47, 0x66, 0x78, 0x32, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x01,
     0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x42, 0x4c, 0x4b, 0x7b, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00,
@@ -115,269 +107,178 @@ static PROGRAM: shader::Program = shader::Program::from(include_bytes!("shader.g
     0x00, 0x00, 0x00, 0x00, 0xfe, 0x00, 0x00, 0x80, 0x10, 0x37, 0x00, 0x00, 0x42, 0x4c, 0x4b, 0x7b,
     0x00, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00,
-]
-*/
+]);
 
-#[wut_main(Cafe)]
+#[wut_main(Udp, Console)]
 fn main() {
-    use wut::bindings::*;
-
-    let mut shader: shader::Shader<MyShader> = shader::Shader::new(0, &PROGRAM).unwrap();
-
-    let mut position_buffer = shader::Buffer::from(
+    let mut position_buffer = Buffer::from(
         &[
             Float4::from((1.0, -1.0, 0.0, 1.0)),
             Float4::from((0.0, 1.0, 0.0, 1.0)),
             Float4::from((-1.0, -1.0, 1.0, 1.0)),
         ],
-        shader::buffer::ResourceFlags::BindVertexBuffer
-            | shader::buffer::ResourceFlags::UsageCPU
-            | shader::buffer::ResourceFlags::UsageGPURead,
-    )
-    .unwrap();
+        ResourceFlags::BindVertexBuffer
+            | ResourceFlags::UsageCPURead
+            | ResourceFlags::UsageCPUWrite
+            | ResourceFlags::UsageGPURead,
+    );
 
-    let mut color_buffer = shader::Buffer::from(
+    let mut color_buffer = Buffer::from(
         &[
             Float4::from((1.0, 0.0, 0.0, 1.0)),
             Float4::from((0.0, 1.0, 0.0, 1.0)),
             Float4::from((0.0, 0.0, 1.0, 1.0)),
         ],
-        shader::buffer::ResourceFlags::BindVertexBuffer
-            | shader::buffer::ResourceFlags::UsageCPU
-            | shader::buffer::ResourceFlags::UsageGPURead,
-    )
-    .unwrap();
+        ResourceFlags::BindVertexBuffer | ResourceFlags::UsageCPU | ResourceFlags::UsageGPURead,
+    );
 
-    let context = gx2::context::RenderContext::new();
+    let group = ShaderGroup::new(0, &SHADER).unwrap();
+    let a_position = group.add_attribute::<Float4>("aPosition").unwrap();
+    let a_color = group.add_attribute::<Float4>("aColour").unwrap();
 
-    let mut frame = 0.0;
+    let context = RenderContext::new();
 
     while process::running() {
-        frame += 0.05;
-
         {
             let mut b = color_buffer.lock().unwrap();
             let i = 0;
             b[i].x = 1.0;
-            // b[i].y = if b[i].y >= 1.0 { 0.0 } else { b[i].y + 0.01 };
-            // b[i].z = if b[i].z >= 1.0 { 0.0 } else { b[i].z + 0.01 };
-            b[i].y = 0.5 * (1.0 + frame.sin());
-            b[i].z = 0.5 * (1.0 + frame.cos());
+            b[i].y = if b[i].y >= 1.0 { 0.0 } else { b[i].y + 0.01 };
+            b[i].z = if b[i].z >= 1.0 { 0.0 } else { b[i].z + 0.01 };
             b[i].w = 1.0;
 
-            // let i = 1;
-            // b[i].x = if b[i].x >= 1.0 { 0.0 } else { b[i].x + 0.01 };
-            // b[i].y = 1.0;
-            // b[i].z = if b[i].z >= 1.0 { 0.0 } else { b[i].z + 0.01 };
-            // b[i].w = 1.0;
+            let i = 1;
+            b[i].x = if b[i].x >= 1.0 { 0.0 } else { b[i].x + 0.01 };
+            b[i].y = 1.0;
+            b[i].z = if b[i].z >= 1.0 { 0.0 } else { b[i].z + 0.01 };
+            b[i].w = 1.0;
 
-            // let i = 2;
-            // b[i].x = if b[i].x >= 1.0 { 0.0 } else { b[i].x + 0.01 };
-            // b[i].y = if b[i].y >= 1.0 { 0.0 } else { b[i].y + 0.01 };
-            // b[i].z = 1.0;
-            // b[i].w = 1.0;
+            let i = 2;
+            b[i].x = if b[i].x >= 1.0 { 0.0 } else { b[i].x + 0.01 };
+            b[i].y = if b[i].y >= 1.0 { 0.0 } else { b[i].y + 0.01 };
+            b[i].z = 1.0;
+            b[i].w = 1.0;
         }
 
         let context = context.ready().tv();
 
-        gx2::screen::fill(&context, gx2::color::Color::blue());
+        gx2::screen::fill(&context, gx2::color::Color::white());
+        a_position.set_buffer(&mut position_buffer);
+        a_color.set_buffer(&mut color_buffer);
+        // group.render_tv(&context);
+        // unsafe {
+        //     wut::bindings::GX2DrawEx(
+        //         wut::bindings::GX2PrimitiveMode::GX2_PRIMITIVE_MODE_TRIANGLES,
+        //         3,
+        //         0,
+        //         1,
+        //     );
+        // }
 
-        shader
-            .attributes
-            .a_position
-            .set_buffer(&mut position_buffer);
-        shader.attributes.a_color.set_buffer(&mut color_buffer);
+        // let context = context.drc();
 
-        shader.render();
+        // gx2::screen::fill(&context, gx2::color::Color::white());
+        // a_position.set_buffer(&mut position_buffer);
+        // a_color.set_buffer(&mut color_buffer);
+        // group.render_drc(&context);
+        // unsafe {
+        //     wut::bindings::GX2DrawEx(
+        //         wut::bindings::GX2PrimitiveMode::GX2_PRIMITIVE_MODE_TRIANGLES,
+        //         3,
+        //         0,
+        //         1,
+        //     );
+        // }
 
-        let context = context.drc();
-
-        gx2::screen::fill(&context, gx2::color::Color::magenta());
-
-        context.finish();
+        // context.finish();
     }
+}
 
-    // unsafe {
-    //     /*
-    //     let mut group = WHBGfxShaderGroup::default();
+#[allow(dead_code)]
+fn channel_test() {
+    let (tx, rx) = sync::mpsc::channel();
 
-    //     if WHBGfxLoadGFDShaderGroup(&mut group, 0, SHADER.as_ptr() as *const _) == 0 {
-    //         return;
-    //     }
-    //     */
+    let _ = thread::spawn(move || {
+        tx.send(10).unwrap();
+    })
+    .unwrap();
 
-    //     // let group = ShaderGroup::new(0, &SHADER).unwrap();
+    println!("{}", rx.recv().unwrap());
+}
 
-    //     // WHBGfxInitShaderAttribute(
-    //     //     &mut group,
-    //     //     c"aPosition".as_ptr(),
-    //     //     0,
-    //     //     0,
-    //     //     GX2AttribFormat::GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32,
-    //     // );
-    //     // WHBGfxInitShaderAttribute(
-    //     //     &mut group,
-    //     //     c"aColour".as_ptr(),
-    //     //     1,
-    //     //     0,
-    //     //     GX2AttribFormat::GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32,
-    //     // );
-    //     // WHBGfxInitFetchShader(&mut group);
+#[allow(dead_code)]
+fn dynload_test() {
+    use dynamic_loading::Module;
 
-    //     /*
-    //     {
-    //         use GX2RResourceFlags as F;
+    let m = Module::new("coreinit.rpl").unwrap();
 
-    //         position_buffer.flags = F::GX2R_RESOURCE_BIND_VERTEX_BUFFER
-    //             | F::GX2R_RESOURCE_USAGE_CPU_READ
-    //             | F::GX2R_RESOURCE_USAGE_CPU_WRITE
-    //             | F::GX2R_RESOURCE_USAGE_GPU_READ;
-    //         position_buffer.elemSize = 4 * 4;
-    //         position_buffer.elemCount = 3;
-    //         GX2RCreateBuffer(&mut position_buffer);
-    //         let buffer = GX2RLockBufferEx(&mut position_buffer, 0) as *mut f32;
-    //         buffer.copy_from(
-    //             [
-    //                 1.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, -1.0, -1.0, 1.0, 1.0,
-    //             ]
-    //             .as_ptr(),
-    //             4 * 3,
-    //         );
-    //         GX2RUnlockBufferEx(&mut position_buffer, 0);
+    let s = m.function::<unsafe fn() -> u64>("OSGetTitleID").unwrap();
 
-    //         color_buffer.flags = F::GX2R_RESOURCE_BIND_VERTEX_BUFFER
-    //             | F::GX2R_RESOURCE_USAGE_CPU_READ
-    //             | F::GX2R_RESOURCE_USAGE_CPU_WRITE
-    //             | F::GX2R_RESOURCE_USAGE_GPU_READ;
-    //         color_buffer.elemSize = 4 * 4;
-    //         color_buffer.elemCount = 3;
-    //         GX2RCreateBuffer(&mut color_buffer);
-    //         let buffer = GX2RLockBufferEx(&mut color_buffer, 0) as *mut f32;
-    //         buffer.copy_from(
-    //             [1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0].as_ptr(),
-    //             4 * 3,
-    //         );
-    //         GX2RUnlockBufferEx(&mut color_buffer, 0);
-    //     }
-    //     */
-    //     while process::running() {
-    //         /*
-    //         {
-    //             let colors = core::slice::from_raw_parts_mut(
-    //                 GX2RLockBufferEx(&mut color_buffer, 0) as *mut f32,
-    //                 12,
-    //             );
-    //             colors[0] = 1.0;
-    //             colors[1] = if colors[1] >= 1.0 {
-    //                 0.0
-    //             } else {
-    //                 colors[1] + 0.01
-    //             };
-    //             colors[2] = if colors[2] >= 1.0 {
-    //                 0.0
-    //             } else {
-    //                 colors[2] + 0.01
-    //             };
-    //             colors[3] = 1.0;
-    //             // ------------------------------
-    //             colors[4] = if colors[4] >= 1.0 {
-    //                 0.0
-    //             } else {
-    //                 colors[4] + 0.01
-    //             };
-    //             colors[5] = 1.0;
-    //             colors[6] = if colors[6] >= 1.0 {
-    //                 0.0
-    //             } else {
-    //                 colors[6] + 0.01
-    //             };
-    //             colors[7] = 1.0;
-    //             // ------------------------------
-    //             colors[8] = if colors[8] >= 1.0 {
-    //                 0.0
-    //             } else {
-    //                 colors[8] + 0.01
-    //             };
-    //             colors[9] = if colors[9] >= 1.0 {
-    //                 0.0
-    //             } else {
-    //                 colors[9] + 0.01
-    //             };
-    //             colors[10] = 1.0;
-    //             colors[11] = 1.0;
+    // println!("symbol: {:?}", unsafe { s.into_raw() });
 
-    //             GX2RUnlockBufferEx(&mut color_buffer, 0);
-    //         }
-    //          */
+    println!("{:#08x?}", unsafe { s() });
+    // println!("{:#08x?}", unsafe { wut::bindings::OSGetTitleID() });
 
-    //         /*
-    //         {
-    //             let mut b = color_buffer.lock().unwrap();
-    //             let i = 0;
-    //             b[i].x = 1.0;
-    //             b[i].y = if b[i].y >= 1.0 { 0.0 } else { b[i].y + 0.01 };
-    //             b[i].z = if b[i].z >= 1.0 { 0.0 } else { b[i].z + 0.01 };
-    //             b[i].w = 1.0;
+    // -----------------------
 
-    //             let i = 1;
-    //             b[i].x = if b[i].x >= 1.0 { 0.0 } else { b[i].x + 0.01 };
-    //             b[i].y = 1.0;
-    //             b[i].z = if b[i].z >= 1.0 { 0.0 } else { b[i].z + 0.01 };
-    //             b[i].w = 1.0;
+    let rpls = dynamic_loading::rpls_info(0, dynamic_loading::loaded_rpls());
 
-    //             let i = 2;
-    //             b[i].x = if b[i].x >= 1.0 { 0.0 } else { b[i].x + 0.01 };
-    //             b[i].y = if b[i].y >= 1.0 { 0.0 } else { b[i].y + 0.01 };
-    //             b[i].z = 1.0;
-    //             b[i].w = 1.0;
-    //         }
-    //         */
+    println!("{}", rpls.len());
 
-    //         WHBGfxBeginRender();
+    for rpl in &rpls {
+        println!("{:?}", rpl);
+    }
+}
 
-    //         // println!("begin render");
+#[allow(dead_code)]
+fn fs_test() {
+    let p = "/vol/external01/wiiu/test.txt";
+    // let p = "/vol/storage_mlc01/usr/test.txt"; // cemu
+    let mut file = fs::OpenOptions::new()
+        .read(true)
+        .write(true)
+        // .append(true)
+        .create(true)
+        .truncate(true)
+        .open(p)
+        .unwrap();
+    println!("{:?}", file);
 
-    //         WHBGfxBeginRenderTV();
-    //         WHBGfxClearColor(0.0, 0.0, 1.0, 1.0);
-    //         // GX2RSetAttributeBuffer(
-    //         //     position_buffer.as_raw_mut(),
-    //         //     0,
-    //         //     core::mem::size_of::<Float4>() as u32,
-    //         //     0,
-    //         // );
-    //         // GX2RSetAttributeBuffer(
-    //         //     color_buffer.as_raw_mut(),
-    //         //     1,
-    //         //     core::mem::size_of::<Float4>() as u32,
-    //         //     0,
-    //         // );
-    //         // GX2SetFetchShader(&group.fetchShader);
-    //         // GX2SetVertexShader(group.vertexShader);
-    //         // GX2SetPixelShader(group.pixelShader);
-    //         // GX2DrawEx(GX2PrimitiveMode::GX2_PRIMITIVE_MODE_TRIANGLES, 3, 0, 1);
-    //         WHBGfxFinishRenderTV();
+    println!("{}", file.metadata().unwrap().created().unwrap());
 
-    //         WHBGfxBeginRenderDRC();
-    //         WHBGfxClearColor(1.0, 0.0, 1.0, 1.0);
-    //         // GX2RSetAttributeBuffer(
-    //         //     position_buffer.as_raw_mut(),
-    //         //     0,
-    //         //     core::mem::size_of::<Float4>() as u32,
-    //         //     0,
-    //         // );
-    //         // GX2RSetAttributeBuffer(
-    //         //     color_buffer.as_raw_mut(),
-    //         //     1,
-    //         //     core::mem::size_of::<Float4>() as u32,
-    //         //     0,
-    //         // );
-    //         // GX2SetFetchShader(&group.fetchShader);
-    //         // GX2SetVertexShader(group.vertexShader);
-    //         // GX2SetPixelShader(group.pixelShader);
-    //         // GX2DrawEx(GX2PrimitiveMode::GX2_PRIMITIVE_MODE_TRIANGLES, 3, 0, 1);
-    //         WHBGfxFinishRenderDRC();
+    println!("seek: {}", file.seek_position().unwrap());
 
-    //         WHBGfxFinishRender();
-    //     }
-    // }
+    let mut buffer = Vec::new();
+    file.read_to_end(&mut buffer).unwrap();
+    println!("{:?}", String::from_utf8_lossy(&buffer));
+
+    println!("seek: {}", file.seek_position().unwrap());
+
+    println!("{:?}", file.write_all(b"abc"));
+
+    println!("seek: {}", file.seek(fs::SeekFrom::Start(0)).unwrap());
+
+    let mut buffer = Vec::new();
+    file.read_to_end(&mut buffer).unwrap();
+    println!("{:?}", String::from_utf8_lossy(&buffer));
+}
+
+#[allow(dead_code)]
+fn net_test() {
+    let listener = net::TcpListener::bind("0.0.0.0:7331").unwrap();
+
+    println!("{:?}", listener);
+
+    let (mut stream, _) = listener.accept().unwrap();
+
+    println!("{:?}", stream);
+
+    // let read = stream.read(&mut buffer).unwrap();
+    // println!("{}", String::from_utf8_lossy(&buffer[..read]));
+
+    let mut buffer = [0; 64];
+    while let Ok(length) = stream.read(&mut buffer) {
+        println!("{}", String::from_utf8_lossy(&buffer[..length]));
+        let _ = stream.write(&buffer);
+    }
 }

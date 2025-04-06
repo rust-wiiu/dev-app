@@ -1,5 +1,5 @@
 [package]
-name = "dev-appp"
+name = "dev-app"
 version = "0.2.0"
 edition = "2021"
 authors = ["29th-Day"]
@@ -14,4 +14,5 @@ name = "My Rust App"
 # content = "/content/dir"
 
 [dependencies]
-wut = { path = "../wut-rs", version = "*", features = ["panic_handler"] }
+wut = { path = "../wut", version = "*", features = ["panic_handler"] }
+kernel = { path = "../kernel", version = "*" }
