@@ -1,6 +1,6 @@
 extend = [
     { path = "../wut/Makefile.toml" },
-    { path = "../kernel/Makefile.toml" },
+    # { path = "../kernel/Makefile.toml" },
 ]
 
 [env]
@@ -8,7 +8,8 @@ WUT_DIR = "../wut"
 
 [tasks.build]
 clear = true
-dependencies = ["kernel", "wuhb"]
+# dependencies = ["kernel", "wuhb"]
+dependencies = ["wuhb"]
 
 [tasks.run]
 clear = true

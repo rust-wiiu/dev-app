@@ -14,5 +14,6 @@ name = "My Rust App"
 # content = "/content/dir"
 
 [dependencies]
-wut = { path = "../wut", version = "*", features = ["panic_handler"] }
-kernel = { path = "../kernel", version = "*" }
+wut = { path = "../wut", version = "*", features = ["panic_handler"]}
+# kernel = { path = "../kernel", version = "*" }
+cafeglsl = { path = "../cafeglsl", version = "*" }
