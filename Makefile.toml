@@ -1,10 +1,9 @@
 extend = [
-    { path = "../wut/Makefile.toml" },
-    # { path = "../kernel/Makefile.toml" },
+    { path = "target/cargo-make/Makefile.toml" },
 ]
 
-[env]
-WUT_DIR = "../wut"
+[config]
+load_script = """[ -d "./target/cargo-make" ] || git clone https://github.com/rust-wiiu/Makefile.git ./target/cargo-make"""
 
 [tasks.build]
 clear = true

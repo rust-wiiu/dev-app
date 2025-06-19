@@ -1,7 +1,7 @@
 [package]
 name = "dev-app"
 version = "0.2.0"
-edition = "2021"
+edition = "2024"
 authors = ["29th-Day"]
 license = "EUPL"
 
@@ -14,6 +14,6 @@ name = "My Rust App"
 # content = "/content/dir"
 
 [dependencies]
-wut = { path = "../wut", version = "*", features = ["panic_handler"]}
+wut = { git = "https://github.com/rust-wiiu/wut", tag = "v0.4.2" }
 # kernel = { path = "../kernel", version = "*" }
-cafeglsl = { path = "../cafeglsl", version = "*" }
+# cafeglsl = { path = "../cafeglsl", version = "*" }

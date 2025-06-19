@@ -1,21 +1,19 @@
 #![no_std]
 #![no_main]
 
+use wut::gx2::shader::{self, attribute::Float4};
+use wut::macros::ShaderAttributes;
 use wut::prelude::*;
 use wut::*;
 
-use wut::gx2::shader::{self, attribute::Float4};
+// use cafeglsl;
 
 #[derive(ShaderAttributes)]
 struct MyShader {
     #[name = "in_position"]
-    // #[index = 0]
-    // #[offset = 3]
-    a_position: shader::Attribute<Float4>,
+    position: shader::Attribute<Float4>,
     #[name = "in_color"]
-    // #[index = 1]
-    // #[offset = 0]
-    a_color: shader::Attribute<Float4>,
+    color: shader::Attribute<Float4>,
 }
 
 static PROGRAM: shader::Program = shader::Program::from(include_bytes!("out.gsh"));
@@ -118,8 +116,6 @@ static PROGRAM: shader::Program = shader::Program::from(include_bytes!("out.gsh"
 ]
 */
 
-extern crate cafeglsl;
-
 #[main(Cafe, Console)]
 fn main() {
     let mut shader: shader::Shader<MyShader> = shader::Shader::new(0, &PROGRAM).unwrap();
@@ -150,10 +146,10 @@ fn main() {
 
     let context = gx2::context::RenderContext::new();
 
-    let mut frame = 0.0;
+    let mut delta = 0.0;
 
     while process::running() {
-        frame += 0.05;
+        delta += 0.05;
 
         {
             let mut b = color_buffer.lock().unwrap();
@@ -161,8 +157,8 @@ fn main() {
             b[i].x = 1.0;
             // b[i].y = if b[i].y >= 1.0 { 0.0 } else { b[i].y + 0.01 };
             // b[i].z = if b[i].z >= 1.0 { 0.0 } else { b[i].z + 0.01 };
-            b[i].y = 0.5 * (1.0 + frame.sin());
-            b[i].z = 0.5 * (1.0 + frame.cos());
+            b[i].y = 0.5 * (1.0 + delta.sin());
+            b[i].z = 0.5 * (1.0 + delta.cos());
             b[i].w = 1.0;
 
             // let i = 1;
@@ -182,11 +178,8 @@ fn main() {
 
         gx2::screen::fill(&context, gx2::color::Color::blue());
 
-        shader
-            .attributes
-            .a_position
-            .set_buffer(&mut position_buffer);
-        shader.attributes.a_color.set_buffer(&mut color_buffer);
+        shader.attributes.position.set_buffer(&mut position_buffer);
+        shader.attributes.color.set_buffer(&mut color_buffer);
 
         shader.render(&context);
 
