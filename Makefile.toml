@@ -3,7 +3,13 @@ extend = [
 ]
 
 [config]
-load_script = """[ -d "./target/cargo-make" ] || git clone https://github.com/rust-wiiu/Makefile.git ./target/cargo-make"""
+load_script = """
+#!@duckscript
+exists = is_path_exists ./target/cargo-make
+if equals ${exists} false
+    exec git clone https://github.com/rust-wiiu/Makefile.git ./target/cargo-make
+end
+"""
 
 [tasks.build]
 clear = true

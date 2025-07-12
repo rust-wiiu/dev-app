@@ -14,6 +14,8 @@ name = "My Rust App"
 # content = "/content/dir"
 
 [dependencies]
-wut = { git = "https://github.com/rust-wiiu/wut", tag = "v0.4.2" }
+# wut = { git = "https://github.com/rust-wiiu/wut", tag = "v0.4.2" }
+wut = { path = "../wut" }
 # kernel = { path = "../kernel", version = "*" }
 # cafeglsl = { path = "../cafeglsl", version = "*" }
+# guii = { path = "../guii" }
