@@ -18,4 +18,4 @@ name = "My Rust App"
 wut = { path = "../wut" }
 # kernel = { path = "../kernel", version = "*" }
 # cafeglsl = { path = "../cafeglsl", version = "*" }
-# guii = { path = "../guii" }
+guii = { path = "../guii" }

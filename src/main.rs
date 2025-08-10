@@ -5,17 +5,17 @@ use wut::font::icons::keyboard;
 use wut::gx2::dialog::ErrorView;
 use wut::gx2::dialog::keyboard::Keyboard;
 use wut::gx2::shader::Attribute;
-use wut::gx2::target::{RenderTarget, Renderable};
+use wut::gx2::target::{RenderTarget, Renderable, TV};
 use wut::gx2::{
     dialog::Dialog,
     shader::{self, PrimitiveMode},
     types::{Float4, Uint, Uint4},
 };
-use wut::macros::ShaderAttributes;
 use wut::prelude::*;
+use wut::screen::Color;
 use wut::*;
 
-// use guii;
+use guii::Guii;
 
 // use cafeglsl;
 
@@ -27,60 +27,66 @@ use wut::*;
 //     color: shader::Attribute<Float4>,
 // }
 
-static PROGRAM: shader::Program = shader::Program::from(include_bytes!("out.gsh"));
+// static PROGRAM: shader::Program = shader::Program::from(include_bytes!("out.gsh"));
 
-#[main(Cafe, Console)]
+#[main(Cafe)]
 fn main() {
-    let mut shader: shader::Shader = shader::Shader::new(
-        0,
-        &PROGRAM,
-        [
-            Attribute::new::<Float4>("in_position", 0, 0),
-            Attribute::new::<Float4>("in_color", 1, 0),
-        ],
-    )
-    .unwrap();
+    // let mut shader: shader::Shader = shader::Shader::new(
+    //     0,
+    //     &PROGRAM,
+    //     [
+    //         Attribute::new::<Float4>("in_position", 0, 0),
+    //         Attribute::new::<Float4>("in_color", 1, 0),
+    //     ],
+    // )
+    // .unwrap();
 
-    let mut vertices = gx2::buffer::VertexBuffer::new()
-        .cpu(true, true)
-        .gpu(true, false)
-        .from([
-            Float4::from((0.5, 0.5, 0.0, 1.0)),
-            Float4::from((0.5, -0.5, 0.0, 1.0)),
-            Float4::from((-0.5, -0.5, 1.0, 1.0)),
-            Float4::from((-0.5, 0.5, 0.0, 1.0)),
-        ])
-        .unwrap();
+    // let mut vertices = gx2::buffer::VertexBuffer::new()
+    //     .cpu(true, true)
+    //     .gpu(true, false)
+    //     .from([
+    //         Float4::from((0.5, 0.5, 0.0, 1.0)),
+    //         Float4::from((0.5, -0.5, 0.0, 1.0)),
+    //         Float4::from((-0.5, -0.5, 1.0, 1.0)),
+    //         Float4::from((-0.5, 0.5, 0.0, 1.0)),
+    //     ])
+    //     .unwrap();
 
-    let mut colors = gx2::buffer::VertexBuffer::new()
-        .cpu(true, true)
-        .gpu(true, false)
-        .from([
-            Float4::from(gx2::color::Color::red()),
-            Float4::from(gx2::color::Color::green()),
-            Float4::from(gx2::color::Color::blue()),
-            Float4::from(gx2::color::Color::magenta()),
-            // Float4::from(gx2::color::Color::black()),
-        ])
-        .unwrap();
+    // let mut colors = gx2::buffer::VertexBuffer::new()
+    //     .cpu(true, true)
+    //     .gpu(true, false)
+    //     .from([
+    //         Float4::from(gx2::color::Color::red()),
+    //         Float4::from(gx2::color::Color::green()),
+    //         Float4::from(gx2::color::Color::blue()),
+    //         Float4::from(gx2::color::Color::magenta()),
+    //         // Float4::from(gx2::color::Color::black()),
+    //     ])
+    //     .unwrap();
 
-    let indices = gx2::buffer::IndexBuffer::new()
-        .cpu(true, true)
-        .gpu(true, false)
-        .from([0u32, 1, 2, 0, 2, 3])
-        .unwrap();
+    // let indices = gx2::buffer::IndexBuffer::new()
+    //     .cpu(true, true)
+    //     .gpu(true, false)
+    //     .from([0u32, 1, 2, 0, 2, 3])
+    //     .unwrap();
 
     let context = gx2::context::Context::new();
 
-    let mut delta = 0.0;
+    // let mut delta = 0.0;
 
     // let error = ErrorView::build(gx2::dialog::Region::Europe, gx2::dialog::Language::English)
     //     .error_code(2)
     //     .show()
     //     .unwrap();
 
+    // wut::thread::sleep(wut::time::Duration::from_secs(5));
+
+    let mut guii = Guii::new().unwrap();
+
+    // guii::font::test();
+
     while process::running() {
-        delta += 0.05;
+        // delta += 0.05;
 
         {
             // let mut b = color_buffer.lock().unwrap();
@@ -102,20 +108,29 @@ fn main() {
             // b[i].w = 1.0;
         }
 
-        // guii.build(|ui| {
-        //     ui.rectangle(0.5, -0.5, 1.0, 1.0, gx2::color::Color::red());
-        // });
+        guii.build(|ui| {
+            // ui.rectangle(-0.5, -0.5, 1.0, 1.0, gx2::color::Color::red());
+
+            // ui.character('x', 100, 100);
+            ui.text("Wii U", 100, 100, 25, Color::red());
+            ui.text("Wii U", 400, 600, 50, Color::black());
+            ui.text("Wii U", 400, 500, 10, Color::black());
+            ui.text("Wii U", 0.5, 0.5, 1.0, Color::black());
+            ui.text("Wii U", 0.5, 0.6, 0.5, Color::black());
+        });
 
         context.render(
             |tv| {
-                tv.fill(gx2::color::Color::black());
+                tv.fill(gx2::color::Color::light_blue());
 
-                shader
-                    .render(tv)
-                    .attribute(&vertices)
-                    .attribute(&colors)
-                    // .draw();
-                    .draw_indexed(&indices);
+                guii.render(tv);
+
+                // shader
+                //     .render(tv)
+                //     .attribute(&vertices)
+                //     .attribute(&colors)
+                //     // .draw();
+                //     .draw_indexed(&indices);
 
                 // error.update();
                 // error.render(tv);
@@ -124,25 +139,5 @@ fn main() {
                 drc.fill(gx2::color::Color::dark_olive_green());
             },
         );
-
-        // let renderer = context.renderer();
-
-        // renderer.tv(|target| {
-        //     //
-        //     target.fill(gx2::color::Color::blue());
-
-        // shader.attributes.position.set_buffer(&vertices);
-        //     shader.attributes.color.set_buffer(&colors);
-        //     target.draw(PrimitiveMode::Quads, &shader);
-
-        //     // error.update();
-
-        //     // target.dialog(&error);
-        // });
-
-        // renderer.drc(|target| {
-        //     //
-        //     target.fill(gx2::color::Color::magenta());
-        // });
     }
 }
