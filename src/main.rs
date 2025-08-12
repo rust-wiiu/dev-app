@@ -1,5 +1,6 @@
 #![no_std]
 #![no_main]
+#![allow(unused_imports)]
 
 use wut::font::icons::keyboard;
 use wut::gx2::dialog::ErrorView;
@@ -9,7 +10,7 @@ use wut::gx2::target::{RenderTarget, Renderable, TV};
 use wut::gx2::{
     dialog::Dialog,
     shader::{self, PrimitiveMode},
-    types::{Float4, Uint, Uint4},
+    // types::{Float4, Uint, Uint4},
 };
 use wut::prelude::*;
 use wut::screen::Color;
@@ -83,8 +84,6 @@ fn main() {
 
     let mut guii = Guii::new().unwrap();
 
-    // guii::font::test();
-
     while process::running() {
         // delta += 0.05;
 
@@ -109,14 +108,17 @@ fn main() {
         }
 
         guii.build(|ui| {
-            // ui.rectangle(-0.5, -0.5, 1.0, 1.0, gx2::color::Color::red());
+            ui.rect(100, 100, 100, 100, Color::red());
 
-            // ui.character('x', 100, 100);
-            ui.text("Wii U", 100, 100, 25, Color::red());
-            ui.text("Wii U", 400, 600, 50, Color::black());
-            ui.text("Wii U", 400, 500, 10, Color::black());
-            ui.text("Wii U", 0.5, 0.5, 1.0, Color::black());
-            ui.text("Wii U", 0.5, 0.6, 0.5, Color::black());
+            ui.text(
+                " !\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~",
+                100,
+                100,
+                0.5,
+                Color::black(),
+            );
+
+            ui.rect(100, 100, 90, 90, Color::green());
         });
 
         context.render(
