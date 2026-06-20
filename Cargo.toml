@@ -1,0 +1,15 @@
+[package]
+name = "dev-app"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "dev-app"
+test = false
+bench = false
+
+[dependencies]
+cafe-rs = { path = "../cafe-rs", features = ["rt", "panic"] }
+cafe-app = { path = "../cafe-app" }
+cafe-logger = { path = "../cafe-logger" }
+log = "0.4.32"
