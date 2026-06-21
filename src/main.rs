@@ -2,9 +2,8 @@
 #![no_main]
 
 use cafe_app::Application;
+use cafe_rs::prelude::*;
 use cafe_rs::rt::rpx;
-use cafe_rs::sys::gx2;
-use cafe_rs::{self as cafe, sys};
 
 rpx! {
     fn main() {
@@ -19,10 +18,38 @@ static SHADER: &[u8] = include_bytes!("../content/pos_col_shader.gsh");
 type Position = [f32; 4];
 type Color = [f32; 4];
 
+struct Vertex {
+    position: [f32; 4],
+    color: [f32; 4],
+}
+
+// struct Attributes([cafe::graphics::Attribute; 2]);
+
+// impl Attributes {
+//     fn new() -> Self {
+//         todo!()
+//     }
+
+//     fn color(&self) -> &cafe::graphics::Attribute {
+//         &self.0[0]
+//     }
+
+//     fn position(&self) -> &cafe::graphics::Attribute {
+//         &self.0[1]
+//     }
+// }
+
+// impl AsRef<[cafe::graphics::Attribute]> for Attributes {
+//     fn as_ref(&self) -> &[cafe::graphics::Attribute] {
+//         &self.0
+//     }
+// }
+
 struct MyApp {
-    shader: cafe::graphics::ShaderGroup<(Position, Color)>,
-    position: cafe::graphics::VertexBuffer<Position>,
-    color: cafe::graphics::VertexBuffer<Color>,
+    shader: cafe::graphics::ShaderGroup<[cafe::graphics::Attribute; 2]>,
+    // position: cafe::graphics::VertexBuffer<Position>,
+    // color: cafe::graphics::VertexBuffer<Color>,
+    vbo: cafe::graphics::VertexBuffer<Vertex>,
     tv_ctx: cafe::graphics::Context<cafe::graphics::TV>,
     drc_ctx: cafe::graphics::Context<cafe::graphics::DRC>,
     tv: Option<cafe::graphics::Display<cafe::graphics::TV>>,
@@ -38,23 +65,39 @@ impl Application for MyApp {
         let group = cafe::graphics::ShaderGroup::new(
             gfx.vertex.swap_remove(0),
             gfx.pixel.swap_remove(0),
-            (
-                cafe::graphics::Attribute::<Color>::location(0),
-                cafe::graphics::Attribute::<Position>::location(1),
-            ),
+            [
+                cafe::graphics::Attribute::new::<Color>(0, cafe::graphics::shader::Stream::S0)
+                    .offset(std::mem::offset_of!(Vertex, color)),
+                cafe::graphics::Attribute::new::<Position>(1, cafe::graphics::shader::Stream::S0)
+                    .offset(std::mem::offset_of!(Vertex, position)),
+            ],
         );
 
         Self {
             shader: group,
-            position: cafe::graphics::VertexBuffer::from([
-                [1.0, -1.0, 0.0, 1.0],  //
-                [0.0, 1.0, 0.0, 1.0],   //
-                [-1.0, -1.0, 1.0, 1.0], //
-            ]),
-            color: cafe::graphics::VertexBuffer::from([
-                [1.0, 0.0, 0.0, 1.0], //
-                [0.0, 1.0, 0.0, 1.0], //
-                [0.0, 0.0, 1.0, 1.0], //
+            // position: cafe::graphics::VertexBuffer::from([
+            //     [1.0, -1.0, 0.0, 1.0],  //
+            //     [0.0, 1.0, 0.0, 1.0],   //
+            //     [-1.0, -1.0, 1.0, 1.0], //
+            // ]),
+            // color: cafe::graphics::VertexBuffer::from([
+            //     [1.0, 0.0, 0.0, 1.0], //
+            //     [0.0, 1.0, 0.0, 1.0], //
+            //     [0.0, 0.0, 1.0, 1.0], //
+            // ]),
+            vbo: cafe::graphics::VertexBuffer::from([
+                Vertex {
+                    position: [1.0, -1.0, 0.0, 1.0],
+                    color: [1.0, 0.0, 0.0, 1.0],
+                },
+                Vertex {
+                    position: [0.0, 1.0, 0.0, 1.0],
+                    color: [0.0, 1.0, 0.0, 1.0],
+                },
+                Vertex {
+                    position: [-1.0, -1.0, 1.0, 1.0],
+                    color: [0.0, 0.0, 1.0, 1.0],
+                },
             ]),
             tv: None,
             drc: None,
@@ -67,31 +110,29 @@ impl Application for MyApp {
 
     fn update(&mut self) {
         {
-            let mut data = self.color.lock();
+            let mut data = self.vbo.lock();
 
             {
-                let col = &mut data[0];
+                let v = &mut data[0];
 
-                col[1] = if col[1] >= 1.0 { 0.0 } else { col[1] + 0.01 };
-                col[2] = if col[2] >= 1.0 { 0.0 } else { col[2] + 0.01 };
+                v.color[1] = (v.color[1] + 0.01) % 1.0;
+                v.color[2] = (v.color[2] + 0.01) % 1.0;
             }
 
             {
-                let col = &mut data[1];
+                let v = &mut data[1];
 
-                col[0] = if col[0] >= 1.0 { 0.0 } else { col[0] + 0.01 };
-                col[2] = if col[2] >= 1.0 { 0.0 } else { col[2] + 0.01 };
+                v.color[0] = (v.color[0] + 0.01) % 1.0;
+                v.color[2] = (v.color[2] + 0.01) % 1.0;
             }
 
             {
-                let col = &mut data[2];
+                let v = &mut data[2];
 
-                col[0] = if col[0] >= 1.0 { 0.0 } else { col[0] + 0.01 };
-                col[1] = if col[1] >= 1.0 { 0.0 } else { col[1] + 0.01 };
+                v.color[0] = (v.color[0] + 0.01) % 1.0;
+                v.color[1] = (v.color[1] + 0.01) % 1.0;
             }
         }
-
-        // log::info!("{:?}", data);
     }
 
     fn render(&mut self) {
@@ -100,10 +141,12 @@ impl Application for MyApp {
             sys::gx2::state::RenderTarget::T0,
             |p| {
                 p.set_color((0, 0, 255));
-                p.use_shader_group(&self.shader, (&self.color, &self.position));
+                p.use_shader_group(&self.shader);
+                p.set_attribute_stream(&self.shader.attrs[0], &self.vbo);
+                p.set_attribute_stream(&self.shader.attrs[1], &self.vbo);
                 p.draw(
                     sys::gx2::shader::PrimitiveMode::Triangles,
-                    self.position.len(),
+                    self.vbo.len(),
                     1,
                 );
             },
@@ -113,11 +156,13 @@ impl Application for MyApp {
             self.drc_target.as_mut().unwrap(),
             sys::gx2::state::RenderTarget::T0,
             |p| {
-                p.set_color((0, 0, 255));
-                p.use_shader_group(&self.shader, (&self.color, &self.position));
+                p.set_color((0, 255, 0));
+                p.use_shader_group(&self.shader);
+                p.set_attribute_stream(&self.shader.attrs[0], &self.vbo);
+                p.set_attribute_stream(&self.shader.attrs[1], &self.vbo);
                 p.draw(
                     sys::gx2::shader::PrimitiveMode::Triangles,
-                    self.position.len(),
+                    self.vbo.len(),
                     1,
                 );
             },
@@ -133,8 +178,8 @@ impl Application for MyApp {
 
     fn on_release(&mut self) {
         self.tv = None;
-        // self.drc = None;
+        self.drc = None;
         self.tv_target = None;
-        // self.drc_target = None;
+        self.drc_target = None;
     }
 }

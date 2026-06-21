@@ -2,6 +2,10 @@
 name = "dev-app"
 version = "0.1.0"
 edition = "2024"
+readme = "README.md"
+license-file = "LICENSE"
+description = "Active development app"
+repository = "https://github.com/rust-wiiu/dev-app"
 
 [[bin]]
 name = "dev-app"
@@ -9,7 +13,7 @@ test = false
 bench = false
 
 [dependencies]
-cafe-rs = { path = "../cafe-rs", features = ["rt", "panic"] }
+cafe-rs = { path = "../cafe-rs" }
 cafe-app = { path = "../cafe-app" }
 cafe-logger = { path = "../cafe-logger" }
-log = "0.4.32"
+log = "0.4.33"
